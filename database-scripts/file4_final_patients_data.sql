@@ -1,6 +1,3 @@
-SET @previous_year = 2022;
-SET @current_year = 2023;
-
 Alter table billing_provider_patients
 ADD COLUMN mrn varchar(255);
  
@@ -96,7 +93,7 @@ set final_patients_data.raf_2023 = Final_Patients.raf_2023;
 drop table if exists top_hcc_v24;
 create table top_hcc_v24 
 select count(*) as Count, mrn, hcc_v24 from patient_diagnosis where hcc_v24 is not null and 
-left(service_date,4)= @current_year group by mrn, hcc_v24;
+left(service_date,4)=2023 group by mrn, hcc_v24;
 
 
 ALTER TABLE `rafvue`.`final_patients_data` 
@@ -120,7 +117,7 @@ ADD COLUMN `current_year_patient` VARCHAR(2) NULL AFTER `max_hccv_24_count`;
 
 set sql_safe_updates=0;
 update final_patients_data inner join patient_diagnosis on final_patients_data.mrn = patient_diagnosis.mrn 
-set current_year_patient=1 where YEAR(service_date)= @current_year;
+set current_year_patient=1 where YEAR(service_date)=2023;
 
 ALTER TABLE `rafvue`.`top_hcc_v24` 
 ADD COLUMN `Gender` VARCHAR(45) NULL AFTER `id`,

@@ -1,13 +1,10 @@
-SET @previous_year = 2022;
-SET @current_year = 2023;
-
 -- calculation for v24
 set sql_safe_updates =0;
 UPDATE diagnostic_grouping dg
 SET dg.total_2022_v24 = (
     SELECT 
         COUNT(DISTINCT p.mrn)
-		FROM post_raf_score p WHERE FIND_IN_SET(p.UASI_HCC, REPLACE(dg.hcc_v24, ' ', '')) > 0 AND p.serviceYear = @previous_year
+		FROM post_raf_score p WHERE FIND_IN_SET(p.UASI_HCC, REPLACE(dg.hcc_v24, ' ', '')) > 0 AND p.serviceYear = 2022
 );
 
 SET sql_safe_updates = 0;
@@ -21,7 +18,7 @@ UPDATE diagnostic_grouping dg
 SET dg.total_2023_v24 = (
     SELECT 
         COUNT(DISTINCT p.mrn)
-		FROM post_raf_score p WHERE FIND_IN_SET(p.UASI_HCC, REPLACE(dg.hcc_v24, ' ', '')) > 0 AND p.serviceYear = @current_year
+		FROM post_raf_score p WHERE FIND_IN_SET(p.UASI_HCC, REPLACE(dg.hcc_v24, ' ', '')) > 0 AND p.serviceYear = 2023
 );
 
 SET sql_safe_updates = 0;
@@ -36,7 +33,7 @@ UPDATE diagnostic_grouping dg
 SET dg.total_2022_v28 = (
     SELECT 
         COUNT(DISTINCT p.mrn)
-		FROM post_raf_score p WHERE FIND_IN_SET(p.UASI_HCC, REPLACE(dg.hcc_v28, ' ', '')) > 0 AND p.serviceYear = @previous_year
+		FROM post_raf_score p WHERE FIND_IN_SET(p.UASI_HCC, REPLACE(dg.hcc_v28, ' ', '')) > 0 AND p.serviceYear = 2022
 );
 
 SET sql_safe_updates = 0;
@@ -50,7 +47,7 @@ UPDATE diagnostic_grouping dg
 SET dg.total_2023_v28 = (
     SELECT 
         COUNT(DISTINCT p.mrn)
-		FROM post_raf_score p WHERE FIND_IN_SET(p.UASI_HCC, REPLACE(dg.hcc_v28, ' ', '')) > 0 AND p.serviceYear = @current_year
+		FROM post_raf_score p WHERE FIND_IN_SET(p.UASI_HCC, REPLACE(dg.hcc_v28, ' ', '')) > 0 AND p.serviceYear = 2023
 );
 
 SET sql_safe_updates = 0;

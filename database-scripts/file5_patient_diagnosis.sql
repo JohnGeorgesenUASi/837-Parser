@@ -1,6 +1,3 @@
-SET @previous_year = 2022;
-SET @current_year = 2023;
-
 DROP TABLE IF EXISTS `json_bucket`;
  CREATE TABLE `json_bucket` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -139,7 +136,7 @@ SET visited_2023 = 1
 WHERE mrn IN (
     SELECT mrn
     FROM service_lines
-    WHERE YEAR(service_date) = @current_year
+    WHERE YEAR(service_date) = 2023
 );
 
 UPDATE rafvue.Final_Patients
@@ -147,7 +144,7 @@ SET visited_2023 = 0
 WHERE mrn NOT IN (
     SELECT mrn
     FROM service_lines
-    WHERE YEAR(service_date) = @current_year
+    WHERE YEAR(service_date) = 2023
 );
 
 UPDATE rafvue.Final_Patients
@@ -155,7 +152,7 @@ SET visited_2022 = 1
 WHERE mrn IN (
     SELECT mrn
     FROM service_lines
-    WHERE YEAR(service_date) = @previous_year
+    WHERE YEAR(service_date) = 2022
 );
 
 UPDATE rafvue.Final_Patients
@@ -163,7 +160,7 @@ SET visited_2022 = 0
 WHERE mrn NOT IN (
     SELECT mrn
     FROM service_lines
-    WHERE YEAR(service_date) = @previous_year
+    WHERE YEAR(service_date) = 2022
 );
 
 
@@ -360,8 +357,8 @@ SELECT
     hcc_weight_24,
     hcc_v28,
     hcc_weight_28,
-    SUM(CASE WHEN YEAR(service_date) LIKE CONCAT('%', @current_year, '%') THEN 1 ELSE 0 END) AS icd_count_2023,
-    SUM(CASE WHEN YEAR(service_date) LIKE CONCAT('%', @previous_year, '%') THEN 1 ELSE 0 END) AS icd_count_2022,
+    SUM(CASE WHEN YEAR(service_date) LIKE '%2023%' THEN 1 ELSE 0 END) AS icd_count_2023,
+    SUM(CASE WHEN YEAR(service_date) LIKE '%2022%' THEN 1 ELSE 0 END) AS icd_count_2022,
     MAX(service_date)
 FROM
     patient_diagnosis
@@ -402,7 +399,7 @@ SET fp.hccs_2023 = (
     SELECT COUNT(distinct pis.hcc_v24)
     FROM rafvue.patient_diagnosis pis
     WHERE pis.mrn = fp.mrn 
-    AND pis.service_date like CONCAT('%', @current_year, '%'));
+    AND pis.service_date like "%2023%");
     
 ALTER TABLE Final_Patients
 ADD COLUMN hccs_2022 INT;
@@ -413,7 +410,7 @@ SET fp.hccs_2022 = (
     SELECT COUNT(distinct pis.hcc_v24)
     FROM rafvue.patient_diagnosis pis
     WHERE pis.mrn = fp.mrn 
-    AND pis.service_date like CONCAT('%', @previous_year, '%'));
+    AND pis.service_date like "%2022%");
 
 ALTER TABLE Final_Patients
 ADD COLUMN payers TEXT;
@@ -440,7 +437,7 @@ SET fp.v28_hccs_2023 = (
     SELECT COUNT(distinct pis.hcc_v28)
     FROM rafvue.patient_diagnosis pis
     WHERE pis.mrn = fp.mrn 
-    AND pis.service_date like CONCAT('%', @current_year, '%'));
+    AND pis.service_date like "%2023%");
 
 SET sql_safe_updates = 0;
 UPDATE Final_Patients fp
@@ -448,7 +445,7 @@ SET fp.v28_hccs_2022 = (
     SELECT COUNT(distinct pis.hcc_v28)
     FROM rafvue.patient_diagnosis pis
     WHERE pis.mrn = fp.mrn 
-    AND pis.service_date like CONCAT('%', @previous_year, '%'));
+    AND pis.service_date like "%2022%");
 
 
 
