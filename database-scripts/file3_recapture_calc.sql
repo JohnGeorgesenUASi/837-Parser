@@ -1,3 +1,5 @@
+SET @previous_year = 2022;
+SET @current_year = 2023;
 
 #Calculate recapture 
 
@@ -24,8 +26,8 @@ FROM recap
 WHERE 
     UASI_HCC IS NOT NULL AND
     (
-        (CAST(serviceYear AS UNSIGNED) = 2022 AND AcuteChronic = 'Chronic') OR
-        (CAST(serviceYear AS UNSIGNED) = 2023 and AcuteChronic IS NOT NULL)
+        (CAST(serviceYear AS UNSIGNED) = @previous_year AND AcuteChronic = 'Chronic') OR
+        (CAST(serviceYear AS UNSIGNED) = @current_year and AcuteChronic IS NOT NULL)
     );
     
 
@@ -61,14 +63,14 @@ UPDATE Final_Patients fp
 SET fp.distinct_hcc_2022 = (
     SELECT GROUP_CONCAT(DISTINCT UASI_HCC ORDER BY UASI_HCC)
     FROM recap_chronic
-    WHERE serviceYear = '2022' AND mrn = fp.mrn
+    WHERE serviceYear = @previous_year AND mrn = fp.mrn
 );
 
 UPDATE Final_Patients fp
 SET fp.distinct_hcc_2023 = (
     SELECT GROUP_CONCAT(DISTINCT UASI_HCC ORDER BY UASI_HCC)
     FROM recap_chronic
-    WHERE serviceYear = '2023' AND mrn = fp.mrn
+    WHERE serviceYear = @current_year AND mrn = fp.mrn
 );
 
 UPDATE Final_Patients fp
@@ -82,7 +84,7 @@ LEFT JOIN (
             ITAC_category, 
             MIN(UASI_HCC) as MIN_UASI
         FROM recap_chronic
-        WHERE serviceYear = '2023'
+        WHERE serviceYear = @current_year
         GROUP BY mrn, ITAC_category
     ) AS subquery_2023
     GROUP BY mrn
@@ -101,7 +103,7 @@ LEFT JOIN (
             ITAC_category, 
             MIN(UASI_HCC) as MIN_UASI
         FROM recap_chronic
-        WHERE serviceYear = '2022'
+        WHERE serviceYear = @previous_year
         GROUP BY mrn, ITAC_category
     ) AS subquery_2022
     GROUP BY mrn
@@ -117,13 +119,13 @@ DROP TEMPORARY TABLE IF EXISTS recapture_status;
 CREATE TEMPORARY TABLE IF NOT EXISTS previous_year_hcc AS
 SELECT mrn, ITAC_category, MIN(UASI_HCC) as min_previous_year_hcc
 FROM recap_chronic
-WHERE serviceYear = '2022'
+WHERE serviceYear = @previous_year
 GROUP BY mrn, ITAC_category;
 
 CREATE TEMPORARY TABLE IF NOT EXISTS current_year_hcc AS
 SELECT mrn, ITAC_category, MIN(UASI_HCC) as min_current_year_hcc
 FROM recap_chronic
-WHERE serviceYear = '2023'
+WHERE serviceYear = @current_year
 GROUP BY mrn, ITAC_category;
 
 CREATE TEMPORARY TABLE IF NOT EXISTS recapture_status AS

@@ -1,3 +1,6 @@
+SET @previous_year = 2022;
+SET @current_year = 2023;
+
 DROP TABLE IF EXISTS `Final_Patients`;
 
 CREATE TABLE `Final_Patients` (
@@ -64,7 +67,7 @@ LEFT JOIN (
         AND ccw.`CMS-HCC Model Category V28` IS NOT NULL AND ccw.`CMS-HCC Model Category V28`!=''
 ) AS codes ON hc.DiagnosisCode = codes.DiagnosisCode
 WHERE 
-    hc.serviceYear = 2022 and codes.`CMS-HCC Model Category V28` IS NOT NULL AND codes.`CMS-HCC Model Category V28`!='';
+    hc.serviceYear = @previous_year and codes.`CMS-HCC Model Category V28` IS NOT NULL AND codes.`CMS-HCC Model Category V28`!='';
 
     
 drop table if exists hcc_2022_min;
@@ -84,7 +87,7 @@ ADD INDEX `idx_fp_mrn` (`mrn`);
 ALTER TABLE Final_Patients
 ADD COLUMN hierarchy_raf_2022 DOUBLE;
 
-/* Add 2022 Hierachy weight */
+/* Add previous year Hierachy weight */
 
 UPDATE Final_Patients AS up
 JOIN (
@@ -192,7 +195,7 @@ LEFT JOIN (
         AND ccw.`CMS-HCC Model Category V28` IS NOT NULL
 ) AS codes ON hc.DiagnosisCode = codes.DiagnosisCode
 WHERE 
-    hc.serviceYear = 2023 and codes.`CMS-HCC Model Category V28` IS NOT NULL;
+    hc.serviceYear = @current_year and codes.`CMS-HCC Model Category V28` IS NOT NULL;
 
 
 drop table if exists hcc_2023_min;
@@ -211,7 +214,7 @@ ADD INDEX `idx_hcc_2023_mrn` (`mrn`);
 ALTER TABLE Final_Patients
 ADD COLUMN hierarchy_raf_2023 DOUBLE;
 
-/* Add 2023 Hierachy weight */
+/* Add current year Hierachy weight */
 
 UPDATE Final_Patients AS up
 JOIN (
@@ -270,7 +273,7 @@ ON fp.mrn = ph.mrn
 SET fp.disease_interaction_2023 = ph.disease_interaction_2023;
 
 
-# calculate 2023 chronic raf
+# calculate current year chronic raf
 
 
 
@@ -287,7 +290,7 @@ ADD INDEX `idx_chronic_hcc_2023_min_mrn` (`mrn`);
 ALTER TABLE Final_Patients
 ADD COLUMN hierarchy_chronic_raf_2023 DOUBLE;
 
-/* Add 2023 Hierachy weight */
+/* Add current year Hierachy weight */
 
 UPDATE Final_Patients AS up
 JOIN (
@@ -418,8 +421,8 @@ FROM recap
 WHERE 
     UASI_HCC IS NOT NULL AND
     (
-        (CAST(serviceYear AS UNSIGNED) = 2022 AND AcuteChronic = 'Chronic') OR
-        (CAST(serviceYear AS UNSIGNED) = 2023 and AcuteChronic IS NOT NULL)
+        (CAST(serviceYear AS UNSIGNED) = @previous_year AND AcuteChronic = 'Chronic') OR
+        (CAST(serviceYear AS UNSIGNED) = @current_year and AcuteChronic IS NOT NULL)
     );
     
 
@@ -455,14 +458,14 @@ UPDATE Final_Patients fp
 SET fp.distinct_hcc_2022 = (
     SELECT GROUP_CONCAT(DISTINCT UASI_HCC ORDER BY UASI_HCC)
     FROM recap_chronic
-    WHERE serviceYear = '2022' AND mrn = fp.mrn
+    WHERE serviceYear = @previous_year AND mrn = fp.mrn
 );
 
 UPDATE Final_Patients fp
 SET fp.distinct_hcc_2023 = (
     SELECT GROUP_CONCAT(DISTINCT UASI_HCC ORDER BY UASI_HCC)
     FROM recap_chronic
-    WHERE serviceYear = '2023' AND mrn = fp.mrn
+    WHERE serviceYear = @current_year AND mrn = fp.mrn
 );
 
 UPDATE Final_Patients fp
@@ -476,7 +479,7 @@ LEFT JOIN (
             ITAC_category, 
             MIN(UASI_HCC) as MIN_UASI
         FROM recap_chronic
-        WHERE serviceYear = '2023'
+        WHERE serviceYear = @current_year
         GROUP BY mrn, ITAC_category
     ) AS subquery_2023
     GROUP BY mrn
@@ -495,7 +498,7 @@ LEFT JOIN (
             ITAC_category, 
             MIN(UASI_HCC) as MIN_UASI
         FROM recap_chronic
-        WHERE serviceYear = '2022'
+        WHERE serviceYear = @previous_year
         GROUP BY mrn, ITAC_category
     ) AS subquery_2022
     GROUP BY mrn
@@ -511,13 +514,13 @@ DROP TEMPORARY TABLE IF EXISTS recapture_status;
 CREATE TEMPORARY TABLE IF NOT EXISTS previous_year_hcc AS
 SELECT mrn, ITAC_category, MIN(UASI_HCC) as min_previous_year_hcc
 FROM recap_chronic
-WHERE serviceYear = '2022'
+WHERE serviceYear = @previous_year
 GROUP BY mrn, ITAC_category;
 
 CREATE TEMPORARY TABLE IF NOT EXISTS current_year_hcc AS
 SELECT mrn, ITAC_category, MIN(UASI_HCC) as min_current_year_hcc
 FROM recap_chronic
-WHERE serviceYear = '2023'
+WHERE serviceYear = @current_year
 GROUP BY mrn, ITAC_category;
 
 CREATE TEMPORARY TABLE IF NOT EXISTS recapture_status AS
@@ -584,7 +587,7 @@ LEFT JOIN (
         UASI_HCC, 
         COUNT(*) AS HCC_Count
     FROM recap
-    WHERE serviceYear = '2022'
+    WHERE serviceYear = @previous_year
     GROUP BY UASI_HCC
 ) AS recap_counts ON ia.HCC = recap_counts.UASI_HCC
 SET ia.HCC_Count_2022 = IFNULL(recap_counts.HCC_Count, 0);
@@ -596,7 +599,7 @@ LEFT JOIN (
         UASI_HCC, 
         COUNT(DISTINCT mrn) AS Distinct_Patients
     FROM recap
-    WHERE serviceYear = '2022'
+    WHERE serviceYear = @previous_year
     GROUP BY UASI_HCC
 ) AS patient_counts ON ia.HCC = patient_counts.UASI_HCC
 SET ia.total_patients_2022 = IFNULL(patient_counts.Distinct_Patients, 0);
@@ -609,7 +612,7 @@ LEFT JOIN (
         UASI_HCC, 
         COUNT(*) AS HCC_Count
     FROM recap
-    WHERE serviceYear = '2023'
+    WHERE serviceYear = @current_year
     GROUP BY UASI_HCCv28_hccs_2023
 ) AS recap_counts ON ia.HCC = recap_counts.UASI_HCC
 SET ia.HCC_Count_2023 = IFNULL(recap_counts.HCC_Count, 0);
@@ -621,7 +624,7 @@ LEFT JOIN (
         UASI_HCC, 
         COUNT(DISTINCT mrn) AS Distinct_Patients
     FROM recap
-    WHERE serviceYear = '2023'
+    WHERE serviceYear = @current_year
     GROUP BY UASI_HCC
 ) AS patient_counts ON ia.HCC = patient_counts.UASI_HCC
 SET ia.total_patients_2023 = IFNULL(patient_counts.Distinct_Patients, 0);
@@ -688,7 +691,7 @@ LEFT JOIN (
         UASI_HCC, 
         COUNT(*) AS HCC_Count
     FROM recap
-    WHERE serviceYear = '2022'
+    WHERE serviceYear = @previous_year
     GROUP BY UASI_HCC
 ) AS recap_counts ON ia.HCC = recap_counts.UASI_HCC
 SET ia.HCC_Count_2022 = IFNULL(recap_counts.HCC_Count, 0);
@@ -700,7 +703,7 @@ LEFT JOIN (
         UASI_HCC, 
         COUNT(DISTINCT mrn) AS Distinct_Patients
     FROM recap
-    WHERE serviceYear = '2022'
+    WHERE serviceYear = @previous_year
     GROUP BY UASI_HCC
 ) AS patient_counts ON ia.HCC = patient_counts.UASI_HCC
 SET ia.total_patients_2022 = IFNULL(patient_counts.Distinct_Patients, 0);
@@ -713,7 +716,7 @@ LEFT JOIN (
         UASI_HCC, 
         COUNT(*) AS HCC_Count
     FROM recap
-    WHERE serviceYear = '2023'
+    WHERE serviceYear = @current_year
     GROUP BY UASI_HCC
 ) AS recap_counts ON ia.HCC = recap_counts.UASI_HCC
 SET ia.HCC_Count_2023 = IFNULL(recap_counts.HCC_Count, 0);
@@ -725,7 +728,7 @@ LEFT JOIN (
         UASI_HCC, 
         COUNT(DISTINCT mrn) AS Distinct_Patients
     FROM recap
-    WHERE serviceYear = '2023'
+    WHERE serviceYear = @current_year
     GROUP BY UASI_HCC
 ) AS patient_counts ON ia.HCC = patient_counts.UASI_HCC
 SET ia.total_patients_2023 = IFNULL(patient_counts.Distinct_Patients, 0);

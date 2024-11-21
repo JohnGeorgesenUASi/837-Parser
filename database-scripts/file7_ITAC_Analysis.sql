@@ -1,3 +1,5 @@
+SET @previous_year = 2022;
+SET @current_year = 2023;
 
 INSERT INTO ITAC_Analysis (HCC, HCC_Name, Weights)
 SELECT HCC, HCC_Name, Weights
@@ -17,7 +19,7 @@ LEFT JOIN (
         UASI_HCC, 
         COUNT(*) AS HCC_Count
     FROM recap
-    WHERE serviceYear = '2022'
+    WHERE serviceYear = @previous_year
     GROUP BY UASI_HCC
 ) AS recap_counts ON ia.HCC = recap_counts.UASI_HCC
 SET ia.HCC_Count_2022 = IFNULL(recap_counts.HCC_Count, 0);
@@ -29,7 +31,7 @@ LEFT JOIN (
         UASI_HCC, 
         COUNT(DISTINCT mrn) AS Distinct_Patients
     FROM recap
-    WHERE serviceYear = '2022'
+    WHERE serviceYear = @previous_year
     GROUP BY UASI_HCC
 ) AS patient_counts ON ia.HCC = patient_counts.UASI_HCC
 SET ia.total_patients_2022 = IFNULL(patient_counts.Distinct_Patients, 0);
@@ -42,7 +44,7 @@ LEFT JOIN (
         UASI_HCC, 
         COUNT(*) AS HCC_Count
     FROM recap
-    WHERE serviceYear = '2023'
+    WHERE serviceYear = @current_year
     GROUP BY UASI_HCCv28_hccs_2023
 ) AS recap_counts ON ia.HCC = recap_counts.UASI_HCC
 SET ia.HCC_Count_2023 = IFNULL(recap_counts.HCC_Count, 0);
@@ -54,7 +56,7 @@ LEFT JOIN (
         UASI_HCC, 
         COUNT(DISTINCT mrn) AS Distinct_Patients
     FROM recap
-    WHERE serviceYear = '2023'
+    WHERE serviceYear = @current_year
     GROUP BY UASI_HCC
 ) AS patient_counts ON ia.HCC = patient_counts.UASI_HCC
 SET ia.total_patients_2023 = IFNULL(patient_counts.Distinct_Patients, 0);

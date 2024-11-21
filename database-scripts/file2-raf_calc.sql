@@ -1,3 +1,5 @@
+SET @previous_year = 2022;
+SET @current_year = 2023;
 
 # Select only those HCCs for eligible patients
 
@@ -51,7 +53,7 @@ WHERE DiagnosisCode IS NULL;
 
 # RAF Calculation
 
-#2022 Raf
+#previous_year Raf
 
 CREATE INDEX idx_hc_DiagnosisCode_serviceYear ON hcc_codes_eligible (DiagnosisCode, serviceYear);
 CREATE INDEX idx_ccw_DiagnosisCode_UASI_HCC ON `Complete HCC Codes and Weights` (DiagnosisCode, UASI_HCC);
@@ -91,7 +93,7 @@ LEFT JOIN (
         AND ccw.`CMS-HCC Model Category V24` IS NOT NULL
 ) AS codes ON hc.DiagnosisCode = codes.DiagnosisCode
 WHERE 
-    hc.serviceYear = 2022 and codes.`CMS-HCC Model Category V24` IS NOT NULL;
+    hc.serviceYear = @previous_year and codes.`CMS-HCC Model Category V24` IS NOT NULL;
 
     
 drop table if exists hcc_2022_min;
@@ -112,7 +114,7 @@ ADD INDEX `idx_fp_mrn` (`mrn`);
 ALTER TABLE Final_Patients
 ADD COLUMN hierarchy_raf_2022 DOUBLE;
 
-/* Add 2022 Hierachy weight */
+/* Add previous year Hierachy weight */
 
 UPDATE Final_Patients AS up
 JOIN (
@@ -220,7 +222,7 @@ LEFT JOIN (
         AND ccw.`CMS-HCC Model Category V24` IS NOT NULL
 ) AS codes ON hc.DiagnosisCode = codes.DiagnosisCode
 WHERE 
-    hc.serviceYear = 2023 and codes.`CMS-HCC Model Category V24` IS NOT NULL;
+    hc.serviceYear = @current_year and codes.`CMS-HCC Model Category V24` IS NOT NULL;
 
 
 drop table if exists hcc_2023_min;
@@ -239,7 +241,7 @@ ADD INDEX `idx_hcc_2023_mrn` (`mrn`);
 ALTER TABLE Final_Patients
 ADD COLUMN hierarchy_raf_2023 DOUBLE;
 
-/* Add 2023 Hierachy weight */
+/* Add current year Hierachy weight */
 
 UPDATE Final_Patients AS up
 JOIN (
@@ -298,7 +300,7 @@ ON fp.mrn = ph.mrn
 SET fp.disease_interaction_2023 = ph.disease_interaction_2023;
 
 
-# calculate 2023 chronic raf
+# calculate current year chronic raf
 
 
 
@@ -315,7 +317,7 @@ ADD INDEX `idx_chronic_hcc_2023_min_mrn` (`mrn`);
 ALTER TABLE Final_Patients
 ADD COLUMN hierarchy_chronic_raf_2023 DOUBLE;
 
-/* Add 2023 Hierachy weight */
+/* Add current year Hierachy weight */
 
 UPDATE Final_Patients AS up
 JOIN (
